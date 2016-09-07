@@ -6,7 +6,7 @@ var fs = require('fs'),
 module.exports = function JscsReporter(input) {
   var results;
 
-  this.outputPath = 'jscs-lint-report.html';
+  this.outputPath = (process.env.DEST_PATH || './') + 'jscs-lint-report.html';
 
   this.summarizeFile = function(file, alert) {
     var messages = {
