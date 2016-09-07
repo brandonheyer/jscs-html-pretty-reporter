@@ -8,6 +8,14 @@ module.exports = function JscsReporter(input) {
 
   this.outputPath = (process.env.DEST_PATH || './') + 'jscs-lint-report.html';
 
+  this.errorAttrs = [
+    'filename',
+    'rule',
+    'line',
+    'column',
+    'message'
+  ];
+
   this.summarizeFile = function(file, alert) {
     var messages = {
       line: alert.line,
@@ -30,23 +38,23 @@ module.exports = function JscsReporter(input) {
     return file;
   };
 
+  this.eachFile = function(file) {
+    var entry = {
+      path: file.filename,
+      errors: 0,
+      warnings: 0,
+      messages: [],
+      errorList: []
+    },
+    alerts = file.errors;
+
+    _.each(alerts, _.partial(this.summarizeFile, entry));
+
+    hairballs.updateFileSummary(entry);
+  };
+
   this.summarizeData = function(files) {
-    _.each(files, _.bind(function eachFile(file) {
-      var entry = {
-        path: file.filename,
-        errors: 0,
-        warnings: 0,
-        messages: [],
-        errorList: []
-      },
-      alerts = file.errors;
-
-      _.each(alerts, _.bind(function eachAlert(alert) {
-        entry = this.summarizeFile(entry, alert);
-      }, this));
-
-      hairballs.updateFileSummary(entry);
-    }, this));
+    _.each(files, this.eachFile);
   };
 
   this.runReport = function(input) {
@@ -67,28 +75,34 @@ module.exports = function JscsReporter(input) {
     };
   };
 
+  this.saveHandler = function(err) {
+    if (err) {
+      throw err;
+    }
+  }
+
   this.save = function(data) {
-    fs.writeFile(this.outputPath, templateUtils.applyTemplates(data), function writeHandler(err) {
-      if (err) {
-        throw err;
-      }
-    });
+    fs.writeFile(this.outputPath, templateUtils.applyTemplates(data), this.saveHandler);
   };
 
-  results = _.map(input, function inputMapper(file) {
+  this.mapError = function(error) {
+    return _.pick(error, this.errorAttrs);
+  };
+
+  this.mapInput = function(file) {
     return {
-      errors: _.map(file._errorList, function errorMapper(error) {
-        return _.pick(error, [
-          'filename',
-          'rule',
-          'line',
-          'column',
-          'message'
-        ]);
-      }),
+      errors: _.map(file._errorList, this.mapError),
       filename: file._file._filename
     };
-  });
+  };
 
-  this.save(this.runReport(results));
+  _.bindAll(this, [
+    'summarizeData',
+    'summarizeFile',
+    'eachFile',
+    'mapError',
+    'mapInput'
+  ]);
+
+  this.save(this.runReport(_.map(input, this.mapInput)));
 };
