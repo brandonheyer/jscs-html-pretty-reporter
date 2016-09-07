@@ -1,6 +1,6 @@
 {
   "name": "jscs-html-pretty-reporter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An HTML reporter for JSCS using Hairballs",
   "main": "index.js",
   "scripts": {
