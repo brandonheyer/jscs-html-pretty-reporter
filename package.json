@@ -1,8 +1,8 @@
 {
   "name": "jscs-html-pretty-reporter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An HTML reporter for JSCS using Hairballs",
-  "main": "jscs-html-pretty-reporter.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
